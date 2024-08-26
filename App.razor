@@ -1,0 +1,118 @@
+﻿<div style="max-width: 800px; margin: auto; padding: 24px; display: flex; flex-direction: column; gap: 24px;">
+    <div>
+        <IgbCheckbox @bind-Checked="IsChecked1" @bind-Checked:after="OnChangedCheck1">Sample 1 切り替え</IgbCheckbox>
+        <IgbCheckbox @bind-Checked="IsChecked2" @bind-Checked:after="OnChangedCheck2">Sample 2 切り替え</IgbCheckbox>
+        <IgbCheckbox @bind-Checked="IsCheckedALL" @bind-Checked:after="OnChangedCheckAll">全てのデータ切り替え</IgbCheckbox>
+    </div>
+    <div>
+        <IgbLegend @ref="_legend"
+                   Orientation="LegendOrientation.Horizontal">
+        </IgbLegend>
+        <IgbDataChart Width="100%"
+                      Height="300px"
+                      @ref="chart" Legend="_legend"
+                      ComputedPlotAreaMarginMode="ComputedPlotAreaMarginMode.Series">
+            <IgbCategoryXAxis Name="xAxis"
+                              DataSource="_data1"
+                              Label="@nameof(DataItem.Index)"
+                              MajorStroke="1">
+            </IgbCategoryXAxis>
+
+            <IgbNumericYAxis Name="yAxis" MinimumValue="10" MaximumValue="16" Interval="1"></IgbNumericYAxis>
+
+            <IgbColumnSeries Title="Sample 1"
+                             DataSource="_data1"
+                             XAxisName="xAxis"
+                             YAxisName="yAxis" MarkerType="MarkerType.Hidden"
+                             Visibility="@_visible1"
+                             LegendItemVisibility="@_visible1"
+                             ValueMemberPath="@nameof(DataItem.Value)">
+            </IgbColumnSeries>
+
+            <IgbLineSeries Title="Sample 2"
+                           DataSource="_data2"
+                           XAxisName="xAxis"
+                           YAxisName="yAxis"
+                           Visibility="@_visible2"
+                           LegendItemVisibility="@_visible2"
+                           ValueMemberPath="@nameof(DataItem.Value)">
+            </IgbLineSeries>
+            <IgbCalloutLayer Name="CalloutLayer1"
+                             @ref="calloutLayer1"
+                             IsAutoCalloutBehaviorEnabled="true"
+                             CalloutStrokeThickness="1"
+                             CalloutCollisionMode="CalloutCollisionMode.Greedy">
+            </IgbCalloutLayer>
+        </IgbDataChart>
+    </div>
+</div>
+
+@code {
+    private IgbLegend? _legend;
+
+    private bool IsChecked1 = true;
+    private bool IsChecked2 = true;
+    private bool IsCheckedALL = true;
+
+    private IgbDataChart? chart;
+
+    private Visibility _visible1 = Visibility.Visible;
+    private Visibility _visible2 = Visibility.Visible;
+
+    private async Task OnChangedCheck1()
+    {
+        _visible1 = IsChecked1 ? Visibility.Visible : Visibility.Collapsed;
+        if (chart is null) return;
+        await Task.Run(() => chart.NotifyClearItems(_data1));
+    }
+
+    private async Task OnChangedCheck2()
+    {
+        _visible2 = IsChecked2 ? Visibility.Visible : Visibility.Collapsed;
+        if (chart is null) return;
+        await Task.Run(() => chart.NotifyClearItems(_data2));
+    }
+
+    private async Task OnChangedCheckAll()
+    {
+        IsChecked1 = IsChecked2 = IsCheckedALL;
+        await Task.WhenAll(OnChangedCheck1(), OnChangedCheck2());
+    }
+
+    private IgbCalloutLayer? calloutLayer1;
+    public class DataItem
+    {
+        public int Index { get; set; }
+        public double? Value { get; set; }
+    }
+
+    private List<DataItem> _data1 = new()
+    {
+        new(){ Index = 0, Value = 12 },
+        new(){ Index = 1, Value = 14 },
+        new(){ Index = 2, Value = 11 },
+        new(){ Index = 3, Value = 13 },
+        new(){ Index = 4, Value = 15 },
+        new(){ Index = 5, Value = 12 },
+        new(){ Index = 6, Value = 14 },
+    };
+
+    private List<DataItem> _data2 = new()
+    {
+        new(){ Index = 0, Value = 15 },
+        new(){ Index = 1, Value = 13 },
+        new(){ Index = 2, Value = 14 },
+        new(){ Index = 3, Value = 12 },
+        new(){ Index = 4, Value = 11 },
+        new(){ Index = 5, Value = 13 },
+        new(){ Index = 6, Value = 15 },
+    };
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            this.StateHasChanged();
+        }
+    }
+}
